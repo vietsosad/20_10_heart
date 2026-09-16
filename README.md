@@ -42,7 +42,7 @@ Số lượng ảnh là tuỳ ý — trái tim tự tính lại vị trí cho đ
 
 ## Nhạc nền
 
-Trang hỗ trợ **cả hai cách**: nhúng YouTube, hoặc dùng file nhạc để cạnh `heart.html`. Bản này đang nhúng sẵn *The Walters — I Love You So* từ YouTube. Để trống cả hai trường thì trang chạy im lặng và nút nhạc không hiện.
+Trang hỗ trợ **cả hai cách**: nhúng YouTube, hoặc dùng file nhạc để cạnh `heart.html`. Bản này đang nhúng sẵn *The Walters — I Love You So* từ YouTube. Để trống cả hai trường thì trang chạy im lặng và đĩa nhạc không hiện.
 
 Sửa khối `MUSIC` trong `heart.html` (khối `NHẠC NỀN`):
 
@@ -53,13 +53,14 @@ const MUSIC = {
     volume: 0.35,              // 0 – 1
     startAt: 0,                // giây, chỉ áp dụng cho YouTube
     fadeIn: 2500,              // ms, nhạc lớn dần lên cho đỡ giật mình
-    hidePlayer: false,         // true = thu khung YouTube về 1px
 };
 ```
 
 Chỉ cần phần id sau `?v=` trong link. Nếu link của bạn có thêm `&list=RD...` thì bỏ qua phần đó — đó là danh sách "radio" YouTube tự sinh cho từng người, không nhúng ổn định; ở đây một bài được cho lặp lại liên tục.
 
-Nhạc **bắt đầu ở click đầu tiên**, cùng lúc với tấm ảnh đầu tiên. Đây không phải lựa chọn thẩm mỹ mà là bắt buộc: trình duyệt không cho phát tiếng trước khi người dùng thao tác. Trang này click-to-play sẵn nên vừa vặn. Nút ♪ góc dưới trái để tắt/bật tiếng giữa chừng.
+Nhạc **bắt đầu ở click đầu tiên**, cùng lúc với tấm ảnh đầu tiên. Đây không phải lựa chọn thẩm mỹ mà là bắt buộc: trình duyệt không cho phát tiếng trước khi người dùng thao tác. Trang này click-to-play sẵn nên vừa vặn.
+
+Giao diện nhạc là **một cái đĩa than ở góc dưới bên trái**: quay khi đang phát, đứng yên và xỉn lại khi tắt tiếng. Bấm vào đĩa để tắt/bật. Đĩa vẽ hoàn toàn bằng CSS (rãnh đĩa là `repeating-radial-gradient`), không dùng ảnh bìa album.
 
 ### Chọn cách nào?
 
@@ -75,8 +76,8 @@ Nhạc **bắt đầu ở click đầu tiên**, cùng lúc với tấm ảnh đ�
 
 1. **Phải chạy qua http(s)**, không mở thẳng bằng `file://` — đã thử: qua `file://` iframe được tạo nhưng player không hiện. Dùng `python -m http.server` hoặc GitHub Pages.
    Và phải vào bằng **`http://localhost:8000`**, đừng vào bằng `http://127.0.0.1:8000`: cùng một server, cùng một trang, nhưng YouTube trả lỗi 150 (chặn nhúng) cho origin `127.0.0.1` trong khi `localhost` thì chạy bình thường. Đã thử cả hai để chắc.
-2. **Video phải cho phép nhúng.** Nhiều video (đặc biệt bản ghi livestream, MV hãng đĩa) trả lỗi *"Video unavailable"* khi nhúng. Khi đó `onError` sẽ tự chuyển sang `MUSIC.file` nếu bạn có điền, còn không thì nút nhạc tự ẩn đi.
-3. **`hidePlayer: true` là trái điều khoản của YouTube** — họ yêu cầu player phải nhìn thấy được. Mặc định khung player hiện nhỏ, mờ ở góc dưới trái và rõ lên khi rê chuột vào. Bật cờ đó hay không là quyết định của bạn.
+2. **Video phải cho phép nhúng.** Nhiều video (đặc biệt bản ghi livestream, MV hãng đĩa) trả lỗi *"Video unavailable"* khi nhúng. Khi đó `onError` sẽ tự chuyển sang `MUSIC.file` nếu bạn có điền, còn không thì đĩa nhạc tự ẩn đi.
+3. **Khung player YouTube bị đẩy ra ngoài khung nhìn** (`#yt-host`, `left: -320px`) vì giao diện nhạc là cái đĩa than. Cần biết: điều khoản nhúng của YouTube yêu cầu player phải nhìn thấy được, nên cách này là trái điều khoản. Iframe vẫn giữ nguyên kích thước thật 200×113 thay vì thu về 1px — đã đối chứng hai cách đặt (ngoài khung nhìn và nằm dưới đĩa), trình duyệt xử lý y hệt nhau.
 
 **Nếu dùng file nhạc:** `.gitignore` đã chặn sẵn `*.mp3 *.m4a *.wav *.ogg *.flac`. Nhạc có bản quyền mà commit lên repo công khai là chuyện vi phạm bản quyền, nên file nhạc chỉ nằm trong máy bạn — ai clone repo về sẽ phải tự chuẩn bị nhạc, giống như với ảnh.
 
@@ -89,7 +90,7 @@ Nhạc **bắt đầu ở click đầu tiên**, cùng lúc với tấm ảnh đ�
 | Bước | Diễn ra |
 |---|---|
 | Vào trang | Nền tối, tim nhỏ trôi lơ lửng, dòng gợi ý "click để mở từng khoảnh khắc" |
-| Click lần 1 | Gợi ý biến mất, tên hiện ra, tấm ảnh đầu bung lên kèm chùm tim bắn ra và một nốt nhạc nhỏ |
+| Click lần 1 | Gợi ý biến mất, tên hiện ra, tấm ảnh đầu bung lên kèm chùm tim bắn ra, nhạc bắt đầu lớn dần |
 | Click tiếp | Mở lần lượt từng ảnh, bộ đếm góc phải chạy `n / 20` |
 | Mở hết ảnh, click thêm | **Màn cuối:** bướm xuất hiện theo 7 đợt, từ 3 con lên hơn 300 con |
 | ~10 giây sau | Màn hồng phủ dần toàn màn hình |
@@ -106,11 +107,10 @@ Tất cả nằm trong `heart.html`, chia theo các khối comment:
 | `PHOTO LIST` | Danh sách ảnh |
 | `HEART SHAPE POSITIONS` | Phương trình tim `x = 16sin³t`, `y = -(13cos t − 5cos 2t − 2cos 3t − cos 4t)`, lấy mẫu đều theo số ảnh rồi map vào khung chứa |
 | `REVEAL LOGIC` | Đếm click, mở ảnh, bộ đếm, ẩn/hiện tiêu đề |
-| `NHẠC NỀN` | Cấu hình `MUSIC`, nạp YouTube IFrame API hoặc `<audio>`, fade-in, nút tắt/bật tiếng, dự phòng khi video lỗi |
+| `NHẠC NỀN` | Cấu hình `MUSIC`, nạp YouTube IFrame API hoặc `<audio>`, fade-in, đĩa than vừa làm hình vừa làm nút tắt/bật, dự phòng khi video lỗi |
 | `PARTICLE SYSTEM` | Tim trôi nền (25 hạt, tự tái sinh) + chùm tim bắn ra mỗi lần mở ảnh |
 | `BUTTERFLY HEART FINALE` | Toàn bộ màn cuối — xem phần dưới |
 | `MAIN ANIMATION LOOP` | Một `requestAnimationFrame` duy nhất chạy cả hai canvas |
-| `REVEAL SOUND` | Nốt sine ngắn dựng bằng WebAudio, cao dần theo số ảnh đã mở — không cần file âm thanh |
 
 Ba lớp vẽ chồng lên nhau: `#particles-canvas` (z 0) → ảnh (z 1) → `#butterfly-canvas` (z 100) → `#pink-flood` (z 200).
 
@@ -141,7 +141,8 @@ Phần bay:
 | Độ nét sprite | `FRAME` (mặc định 128px mỗi khung) |
 | Thời điểm phủ hồng / cho reset | mốc `elapsed > 10` và `elapsed > 14` trong `updateButterflies()` |
 | Số tim trôi nền | `AMBIENT_COUNT` |
-| Tắt tiếng nốt nhạc mỗi lần mở ảnh | bỏ lời gọi `playRevealSound()` trong `revealNext()` |
+| Kích thước / vị trí đĩa nhạc | `#record` trong CSS (66px, góc dưới trái) |
+| Tốc độ đĩa quay | `recordSpin` — mặc định 4.5s một vòng |
 | Nhạc nền | khối `MUSIC` — xem phần [Nhạc nền](#nhạc-nền) |
 
 ---
