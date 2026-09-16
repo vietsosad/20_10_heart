@@ -1,0 +1,19 @@
+# Ảnh cá nhân — KHÔNG đẩy lên repo
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.bmp
+*.tif
+*.tiff
+*.heic
+*.heif
+*.avif
+*.mp4
+*.mov
+
+# Rác hệ thống
+Thumbs.db
+desktop.ini
+.DS_Store

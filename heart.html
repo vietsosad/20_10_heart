@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💕 Bùi Ngọc Khánh Quỳnh 💕</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            cursor: pointer;
+            font-family: 'Cormorant Garamond', serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background: radial-gradient(ellipse at 50% 40%, #1a0a12 0%, #0d0509 50%, #050205 100%);
+        }
+
+        /* Floating particles canvas */
+        #particles-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Butterfly finale canvas — on top of everything */
+        #butterfly-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        #butterfly-canvas.active {
+            opacity: 1;
+        }
+
+        /* Main container */
+        #main-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+        }
+
+        /* Heart grid container */
+        #heart-container {
+            position: relative;
+            width: 600px;
+            height: 560px;
+        }
+
+        /* Each photo slot */
+        .photo-slot {
+            position: absolute;
+            width: 90px;
+            height: 90px;
+            opacity: 0;
+            transform: scale(0.3) rotate(8deg);
+            transition: none;
+            pointer-events: none;
+        }
+
+        .photo-slot.revealed {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+            pointer-events: auto;
+            animation: photoReveal 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        @keyframes photoReveal {
+            0% {
+                opacity: 0;
+                transform: scale(0.2) rotate(12deg);
+                filter: blur(8px) brightness(0.3);
+            }
+            50% {
+                opacity: 0.8;
+                filter: blur(2px) brightness(0.8);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+                filter: blur(0px) brightness(1);
+            }
+        }
+
+        .photo-slot img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 2px solid rgba(232, 170, 181, 0.35);
+            box-shadow:
+                0 0 12px rgba(219, 112, 147, 0.25),
+                0 4px 20px rgba(0, 0, 0, 0.5),
+                inset 0 0 0 1px rgba(255, 228, 225, 0.08);
+            transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
+        }
+
+        .photo-slot.revealed img:hover {
+            transform: scale(1.15);
+            border-color: rgba(255, 182, 193, 0.7);
+            box-shadow:
+                0 0 25px rgba(219, 112, 147, 0.5),
+                0 8px 32px rgba(0, 0, 0, 0.6),
+                0 0 60px rgba(255, 105, 180, 0.15);
+            z-index: 100;
+        }
+
+        /* Glow ring behind each photo */
+        .photo-slot::before {
+            content: '';
+            position: absolute;
+            top: -4px; left: -4px;
+            right: -4px; bottom: -4px;
+            border-radius: 14px;
+            background: conic-gradient(
+                from 0deg,
+                rgba(255, 182, 193, 0.0),
+                rgba(219, 112, 147, 0.2),
+                rgba(255, 228, 225, 0.1),
+                rgba(232, 170, 181, 0.25),
+                rgba(255, 182, 193, 0.0)
+            );
+            opacity: 0;
+            transition: opacity 0.6s ease;
+            z-index: -1;
+        }
+
+        .photo-slot.revealed::before {
+            opacity: 1;
+            animation: glowRotate 6s linear infinite;
+        }
+
+        @keyframes glowRotate {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Title text */
+        #title-text {
+            position: fixed;
+            bottom: 40px;
+            left: 0; right: 0;
+            text-align: center;
+            z-index: 10;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 1.2s ease, transform 1.2s ease;
+        }
+
+        #title-text.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #title-text h1 {
+            font-family: 'Great Vibes', cursive;
+            font-size: clamp(28px, 5vw, 56px);
+            color: transparent;
+            background: linear-gradient(135deg, #f8c8d4, #e8aab5, #f5d5dc, #dba4b3);
+            background-clip: text;
+            -webkit-background-clip: text;
+            filter: drop-shadow(0 0 20px rgba(219, 112, 147, 0.4));
+            letter-spacing: 2px;
+        }
+
+        #title-text p {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: clamp(12px, 2vw, 18px);
+            color: rgba(232, 170, 181, 0.5);
+            margin-top: 8px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+
+        /* Click hint */
+        #click-hint {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+            text-align: center;
+            animation: hintPulse 2s ease-in-out infinite;
+            transition: opacity 0.6s ease;
+        }
+
+        #click-hint.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #click-hint .hint-heart {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 12px;
+            filter: drop-shadow(0 0 15px rgba(255, 105, 180, 0.6));
+        }
+
+        #click-hint .hint-text {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            color: rgba(232, 170, 181, 0.6);
+            font-size: 16px;
+            letter-spacing: 3px;
+        }
+
+        @keyframes hintPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
+            50% { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
+        }
+
+        /* Counter */
+        #photo-counter {
+            position: fixed;
+            top: 24px;
+            right: 28px;
+            z-index: 10;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 14px;
+            color: rgba(232, 170, 181, 0.35);
+            letter-spacing: 2px;
+        }
+
+        /* Vignette overlay */
+        #vignette {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: radial-gradient(ellipse at center, transparent 40%, rgba(5, 2, 5, 0.7) 100%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* Pink flood overlay */
+        #pink-flood {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 99;
+            pointer-events: none;
+            opacity: 0;
+            background: radial-gradient(ellipse at center,
+                rgba(255, 182, 193, 0.95) 0%,
+                rgba(255, 105, 180, 0.9) 30%,
+                rgba(219, 112, 147, 0.92) 60%,
+                rgba(199, 91, 122, 0.95) 100%
+            );
+            transition: opacity 3s ease;
+        }
+
+        #pink-flood.flooding {
+            opacity: 1;
+        }
+
+        /* Responsive */
+        @media (max-width: 700px) {
+            #heart-container {
+                width: 340px;
+                height: 320px;
+            }
+            .photo-slot {
+                width: 52px;
+                height: 52px;
+            }
+            .photo-slot img {
+                border-radius: 8px;
+                border-width: 1.5px;
+            }
+        }
+
+        @media (min-width: 701px) and (max-width: 1024px) {
+            #heart-container {
+                width: 480px;
+                height: 440px;
+            }
+            .photo-slot {
+                width: 72px;
+                height: 72px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="particles-canvas"></canvas>
+    <canvas id="butterfly-canvas"></canvas>
+    <div id="pink-flood"></div>
+
+    <div id="main-container">
+        <div id="heart-container"></div>
+    </div>
+
+    <div id="vignette"></div>
+
+    <div id="click-hint">
+        <span class="hint-heart">💗</span>
+        <span class="hint-text">click để mở từng khoảnh khắc</span>
+    </div>
+
+    <div id="photo-counter"></div>
+
+    <div id="title-text">
+        <h1>Bùi Ngọc Khánh Quỳnh</h1>
+        <p>mỗi click — một kỉ niệm</p>
+    </div>
+
+    <script>
+        // ========== PHOTO LIST ==========
+        const photos = [
+            'z6284255744168_f34dee1958e6dad2fdc70a120c5d0818.jpg',
+            'z6287694820142_464ad0389b374e25f8f3f60502a926df.jpg',
+            'z6287694831409_d60a9e796e35cfc92203b93a63e73030.jpg',
+            'z6287694832407_6ce0578ff71b3f38cb779c043df25aef.jpg',
+            'z6287694835748_39a682909121e456fc0a8d240a68210a.jpg',
+            'z6287694840929_0f658d94f1b9866c4b473ed8b52c0c76.jpg',
+            'z6287694848058_1da3a7e08cb9815f74ac118aea65f84f.jpg',
+            'z6287694850890_b3faacfdf5030eca4c3f455cc7829698.jpg',
+            'z6287694857716_246b6a44f1ab400a3e404fe63be3363e.jpg',
+            'z6287694860650_6185cf5cecafbbc9e441acd21383dd6c.jpg',
+            'z6287694862921_17c1df304c6cfe33a7f61f989031cdba.jpg',
+            'z6287694919305_8b4f5f6afab8a8cd7873aa6cdda25fcd.jpg',
+            'z6287694978721_4cb32ab195b90a669ca06fc91adc5075.jpg',
+            'z6287696363196_eff535555125c247e89f8bcf4e7f9387.jpg',
+            'z6287696365977_fbb15fd7a7f79f672ee30c63e9ed6794.jpg',
+            'z6287696369619_c972a2d07f8abd837af1e5831cfd6b7e.jpg',
+            'z6287696381310_8939bcdb4746164e1899b977470a719e.jpg',
+            'z6287696385908_f519615cb4e867ffc9a3d9db0083a3c0.jpg',
+            'z6287696414287_a62b96846224a3d7139704290ce4bb38.jpg',
+            'z6287697979816_418725be10d698c1625f537bc7d5864b.jpg'
+        ];
+
+        // ========== HEART SHAPE POSITIONS ==========
+        function heartX(t) {
+            return 16 * Math.pow(Math.sin(t), 3);
+        }
+
+        function heartY(t) {
+            return -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+        }
+
+        function generateHeartPositions(count) {
+            const positions = [];
+            for (let i = 0; i < count; i++) {
+                const t = -Math.PI + (2 * Math.PI * i) / count;
+                const x = heartX(t);
+                const y = heartY(t);
+                positions.push({ x, y });
+            }
+            return positions;
+        }
+
+        function getContainerSize() {
+            const container = document.getElementById('heart-container');
+            return {
+                w: container.offsetWidth,
+                h: container.offsetHeight
+            };
+        }
+
+        function layoutPhotos() {
+            const container = document.getElementById('heart-container');
+            const { w, h } = getContainerSize();
+            const positions = generateHeartPositions(photos.length);
+
+            const xMin = -16.5, xMax = 16.5, yMin = -14.5, yMax = 16;
+            const xRange = xMax - xMin;
+            const yRange = yMax - yMin;
+
+            const testSlot = document.querySelector('.photo-slot');
+            const slotSize = testSlot ? testSlot.offsetWidth : 90;
+            const padding = slotSize * 0.35;
+
+            container.innerHTML = '';
+
+            positions.forEach((pos, i) => {
+                const slot = document.createElement('div');
+                slot.className = 'photo-slot';
+                slot.dataset.index = i;
+
+                const img = document.createElement('img');
+                img.src = photos[i];
+                img.alt = 'Khoảnh khắc ' + (i + 1);
+                img.loading = 'lazy';
+                slot.appendChild(img);
+
+                const px = padding + ((pos.x - xMin) / xRange) * (w - slotSize - padding * 2);
+                const py = padding + ((pos.y - yMin) / yRange) * (h - slotSize - padding * 2);
+
+                slot.style.left = px + 'px';
+                slot.style.top = py + 'px';
+
+                container.appendChild(slot);
+            });
+        }
+
+        // ========== REVEAL LOGIC ==========
+        let revealedCount = 0;
+        let butterflyPhaseActive = false;
+        const counterEl = document.getElementById('photo-counter');
+        const hintEl = document.getElementById('click-hint');
+        const titleEl = document.getElementById('title-text');
+
+        function updateCounter() {
+            counterEl.textContent = revealedCount + ' / ' + photos.length;
+        }
+
+        function revealNext() {
+            if (revealedCount >= photos.length) {
+                // All revealed — start butterfly phase on this click
+                if (!butterflyPhaseActive) {
+                    startButterflyPhase();
+                }
+                return;
+            }
+
+            const slots = document.querySelectorAll('.photo-slot');
+            const slot = slots[revealedCount];
+            if (!slot) return;
+
+            // Hide hint after first click
+            if (revealedCount === 0) {
+                hintEl.classList.add('hidden');
+                titleEl.classList.add('visible');
+            }
+
+            slot.style.animationDelay = (Math.random() * 0.1) + 's';
+            slot.classList.add('revealed');
+
+            spawnBurst(
+                slot.offsetLeft + slot.offsetWidth / 2,
+                slot.offsetTop + slot.offsetHeight / 2
+            );
+
+            revealedCount++;
+            updateCounter();
+            playRevealSound();
+        }
+
+        // Click handler
+        document.body.addEventListener('click', function(e) {
+            if (butterflyPhaseActive) return; // During butterfly phase, ignore clicks
+            revealNext();
+        });
+
+        // ========== PARTICLE SYSTEM (ambient + burst) ==========
+        const pCanvas = document.getElementById('particles-canvas');
+        const pCtx = pCanvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            pCanvas.width = window.innerWidth;
+            pCanvas.height = window.innerHeight;
+            bCanvas.width = window.innerWidth;
+            bCanvas.height = window.innerHeight;
+        }
+        const bCanvas = document.getElementById('butterfly-canvas');
+        const bCtx = bCanvas.getContext('2d');
+
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            layoutPhotos();
+        });
+        resizeCanvas();
+
+        // Ambient floating hearts
+        const AMBIENT_COUNT = 25;
+        const heartColors = [
+            'rgba(219, 112, 147, 0.12)',
+            'rgba(255, 182, 193, 0.10)',
+            'rgba(232, 170, 181, 0.09)',
+            'rgba(248, 200, 212, 0.08)',
+            'rgba(245, 213, 220, 0.07)',
+            'rgba(188, 143, 143, 0.08)',
+        ];
+
+        function createAmbientParticle() {
+            return {
+                x: Math.random() * pCanvas.width,
+                y: pCanvas.height + 20 + Math.random() * 40,
+                size: 6 + Math.random() * 14,
+                speedY: -(0.3 + Math.random() * 0.7),
+                speedX: (Math.random() - 0.5) * 0.4,
+                wobbleAmp: 15 + Math.random() * 25,
+                wobbleSpeed: 0.005 + Math.random() * 0.015,
+                wobbleOffset: Math.random() * Math.PI * 2,
+                alpha: 0,
+                maxAlpha: 0.4 + Math.random() * 0.4,
+                fadeInSpeed: 0.003 + Math.random() * 0.005,
+                color: heartColors[Math.floor(Math.random() * heartColors.length)],
+                rotation: Math.random() * Math.PI * 2,
+                rotSpeed: (Math.random() - 0.5) * 0.01,
+                type: 'ambient',
+                age: 0
+            };
+        }
+
+        function spawnBurst(cx, cy) {
+            const container = document.getElementById('heart-container');
+            const rect = container.getBoundingClientRect();
+            const bx = rect.left + cx;
+            const by = rect.top + cy;
+
+            for (let i = 0; i < 12; i++) {
+                const angle = (Math.PI * 2 * i) / 12 + (Math.random() - 0.5) * 0.5;
+                const speed = 1.5 + Math.random() * 3;
+                particles.push({
+                    x: bx,
+                    y: by,
+                    size: 4 + Math.random() * 8,
+                    speedX: Math.cos(angle) * speed,
+                    speedY: Math.sin(angle) * speed,
+                    alpha: 1,
+                    maxAlpha: 1,
+                    color: heartColors[Math.floor(Math.random() * heartColors.length)],
+                    rotation: Math.random() * Math.PI * 2,
+                    rotSpeed: (Math.random() - 0.5) * 0.05,
+                    type: 'burst',
+                    age: 0,
+                    maxAge: 40 + Math.random() * 30
+                });
+            }
+        }
+
+        // Draw a mini heart shape
+        function drawHeart(ctx, x, y, size, rotation, color) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(rotation);
+            ctx.scale(size / 20, size / 20);
+            ctx.beginPath();
+            ctx.moveTo(0, -3);
+            ctx.bezierCurveTo(-10, -16, -22, -5, -10, 8);
+            ctx.lineTo(0, 16);
+            ctx.lineTo(10, 8);
+            ctx.bezierCurveTo(22, -5, 10, -16, 0, -3);
+            ctx.closePath();
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.restore();
+        }
+
+        // Init ambient
+        for (let i = 0; i < AMBIENT_COUNT; i++) {
+            const p = createAmbientParticle();
+            p.y = Math.random() * pCanvas.height;
+            p.alpha = p.maxAlpha * Math.random();
+            particles.push(p);
+        }
+
+        // ========== BUTTERFLY HEART FINALE ==========
+        let butterflies = [];
+        let butterflyStartTime = 0;
+        let floodTriggered = false;
+        const pinkFlood = document.getElementById('pink-flood');
+
+        // Butterfly color palette — harmonious pinks
+        // in  = inner wing (near body), out = outer wing, rim = wing edge / veins
+        const butterflyColors = [
+            { body: '#4a1526', in: '#ffd3e2', out: '#ff5f9c', rim: '#8c1f47', glow: 'rgba(255,90,150,0.55)',  spot: '#fff4f8' },
+            { body: '#4f1a2c', in: '#ffe0e8', out: '#f97094', rim: '#8f2a4a', glow: 'rgba(249,112,148,0.5)',  spot: '#fffafc' },
+            { body: '#571427', in: '#ffcfdf', out: '#ff4f86', rim: '#96153f', glow: 'rgba(255,79,134,0.55)',  spot: '#fff2f7' },
+            { body: '#452133', in: '#ffe6f0', out: '#e87fae', rim: '#7d3557', glow: 'rgba(232,127,174,0.45)', spot: '#ffffff' },
+            { body: '#5a1a35', in: '#ffd8ec', out: '#f761b4', rim: '#8d2262', glow: 'rgba(247,97,180,0.5)',   spot: '#fff8fb' },
+            { body: '#3d1f2c', in: '#fbdde9', out: '#d9668d', rim: '#6d2b45', glow: 'rgba(217,102,141,0.45)', spot: '#fdeef4' },
+        ];
+
+        // ---------- Pre-rendered butterfly sprites ----------
+        // Each palette gets a strip of FLAP_FRAMES frames covering one full wing-beat.
+        // Drawing is then a single drawImage per butterfly, so the art can be detailed
+        // without paying for it 350 times a frame.
+        const FLAP_FRAMES = 16;
+        const FRAME = 128;                 // px per frame in the sprite strip
+        const SPRITE_UNIT = FRAME * 0.36;  // the "s" the wing geometry is written in
+        let butterflySprites = null;
+        let heartSprite = null;
+
+        // One wing half, drawn on the -y side. Mirror with scale(1,-1) for the other half.
+        // Forewing: long, swept forward, with the concave outer margin real butterflies have.
+        function traceForewing(ctx, s) {
+            ctx.beginPath();
+            ctx.moveTo(s * 0.20, -s * 0.03);
+            // leading edge, out to the apex
+            ctx.bezierCurveTo(s * 0.46, -s * 0.34, s * 0.46, -s * 0.82, s * 0.30, -s * 1.10);
+            // outer margin, slightly hollowed on the way to the tornus
+            ctx.bezierCurveTo(s * 0.08, -s * 1.06, -s * 0.16, -s * 0.90, -s * 0.34, -s * 0.62);
+            // inner margin back to the thorax
+            ctx.bezierCurveTo(-s * 0.32, -s * 0.34, -s * 0.12, -s * 0.10, s * 0.02, -s * 0.04);
+            ctx.closePath();
+        }
+
+        // Hindwing: shorter, rounder, scalloped, with a small tail lobe.
+        function traceHindwing(ctx, s) {
+            ctx.beginPath();
+            ctx.moveTo(s * 0.04, -s * 0.03);
+            ctx.bezierCurveTo(-s * 0.14, -s * 0.44, -s * 0.36, -s * 0.78, -s * 0.66, -s * 0.72);
+            ctx.bezierCurveTo(-s * 0.86, -s * 0.68, -s * 0.96, -s * 0.46, -s * 0.90, -s * 0.26);
+            ctx.bezierCurveTo(-s * 0.86, -s * 0.12, -s * 0.98, s * 0.00, -s * 0.80, s * 0.04);
+            ctx.bezierCurveTo(-s * 0.52, s * 0.06, -s * 0.22, -s * 0.01, -s * 0.10, -s * 0.05);
+            ctx.closePath();
+        }
+
+        function paintWingHalf(ctx, s, p, open) {
+            // ----- hindwing, tucked behind the forewing -----
+            const hg = ctx.createRadialGradient(s * 0.05, -s * 0.04, s * 0.04, s * 0.05, -s * 0.04, s * 1.0);
+            hg.addColorStop(0, p.in);
+            hg.addColorStop(0.32, p.out);
+            hg.addColorStop(0.85, p.out);
+            hg.addColorStop(1, p.rim);
+
+            traceHindwing(ctx, s);
+            ctx.fillStyle = hg;
+            ctx.fill();
+            ctx.strokeStyle = p.rim;
+            ctx.lineWidth = s * 0.04;
+            ctx.stroke();
+
+            // pearl dots following the scalloped edge
+            ctx.fillStyle = p.spot;
+            ctx.globalAlpha = 0.8;
+            for (let i = 0; i < 5; i++) {
+                const t = i / 4;
+                ctx.beginPath();
+                ctx.arc(-s * (0.44 + t * 0.34), -s * (0.60 - t * 0.42), s * 0.05, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+
+            // ----- forewing -----
+            const fg = ctx.createLinearGradient(s * 0.02, -s * 0.04, s * 0.14, -s * 1.05);
+            fg.addColorStop(0, p.in);
+            fg.addColorStop(0.28, p.out);
+            fg.addColorStop(0.82, p.out);
+            fg.addColorStop(1, p.rim);
+
+            traceForewing(ctx, s);
+            ctx.fillStyle = fg;
+            ctx.fill();
+
+            ctx.save();
+            traceForewing(ctx, s);
+            ctx.clip();
+
+            // veins fanning from the wing base to the outer margin
+            ctx.strokeStyle = p.rim;
+            ctx.globalAlpha = 0.25;
+            ctx.lineWidth = s * 0.024;
+            const tips = [[0.30, -1.06], [0.10, -1.00], [-0.10, -0.86], [-0.28, -0.62]];
+            for (let i = 0; i < tips.length; i++) {
+                ctx.beginPath();
+                ctx.moveTo(s * 0.12, -s * 0.05);
+                ctx.quadraticCurveTo(s * (0.26 - i * 0.06), -s * 0.50, s * tips[i][0], s * tips[i][1]);
+                ctx.stroke();
+            }
+            ctx.globalAlpha = 1;
+
+            // dark margin band along the outer edge, then the marginal spots on top of it
+            const band = ctx.createLinearGradient(s * 0.10, -s * 0.58, s * 0.20, -s * 1.12);
+            band.addColorStop(0, 'rgba(0,0,0,0)');
+            band.addColorStop(1, p.rim);
+            ctx.globalAlpha = 0.65;
+            ctx.fillStyle = band;
+            ctx.fillRect(-s * 1.2, -s * 1.3, s * 2.4, s * 1.4);
+
+            ctx.globalAlpha = 0.95;
+            ctx.fillStyle = p.spot;
+            const marks = [[0.24, -0.98], [0.06, -0.92], [-0.10, -0.78]];
+            for (let i = 0; i < marks.length; i++) {
+                ctx.beginPath();
+                ctx.arc(s * marks[i][0], s * marks[i][1], s * 0.052, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            // one larger cell spot mid-wing, the mark the eye actually lands on
+            ctx.globalAlpha = 0.55;
+            ctx.beginPath();
+            ctx.arc(s * 0.06, -s * 0.60, s * 0.10, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+            ctx.restore();
+
+            traceForewing(ctx, s);
+            ctx.strokeStyle = p.rim;
+            ctx.globalAlpha = 0.9;
+            ctx.lineWidth = s * 0.04;
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+
+            // sheen along the leading edge — light catching the wing as it turns over
+            ctx.save();
+            traceForewing(ctx, s);
+            ctx.clip();
+            const sheen = ctx.createLinearGradient(s * 0.42, -s * 0.95, -s * 0.05, -s * 0.25);
+            sheen.addColorStop(0, 'rgba(255,255,255,' + (0.12 + open * 0.20).toFixed(2) + ')');
+            sheen.addColorStop(0.45, 'rgba(255,255,255,0.04)');
+            sheen.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.fillStyle = sheen;
+            ctx.fillRect(-s * 1.2, -s * 1.3, s * 2.4, s * 1.4);
+            ctx.restore();
+        }
+
+        function paintBody(ctx, s, p) {
+            // abdomen behind, head forward (+x)
+            const bg = ctx.createLinearGradient(0, -s * 0.13, 0, s * 0.13);
+            bg.addColorStop(0, p.in);
+            bg.addColorStop(0.30, p.rim);
+            bg.addColorStop(1, p.body);
+
+            ctx.beginPath();
+            ctx.moveTo(s * 0.32, 0);
+            ctx.bezierCurveTo(s * 0.30, -s * 0.13, s * 0.06, -s * 0.15, -s * 0.10, -s * 0.10);
+            ctx.bezierCurveTo(-s * 0.34, -s * 0.07, -s * 0.48, -s * 0.03, -s * 0.56, 0);
+            ctx.bezierCurveTo(-s * 0.48, s * 0.03, -s * 0.34, s * 0.07, -s * 0.10, s * 0.10);
+            ctx.bezierCurveTo(s * 0.06, s * 0.15, s * 0.30, s * 0.13, s * 0.32, 0);
+            ctx.closePath();
+            ctx.fillStyle = bg;
+            ctx.fill();
+
+            // abdomen segments
+            ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+            ctx.lineWidth = s * 0.016;
+            for (let i = 1; i <= 4; i++) {
+                const x = -s * (0.06 + i * 0.10);
+                const h = s * (0.095 - i * 0.016);
+                ctx.beginPath();
+                ctx.moveTo(x, -h);
+                ctx.lineTo(x, h);
+                ctx.stroke();
+            }
+
+            // head
+            ctx.beginPath();
+            ctx.arc(s * 0.31, 0, s * 0.095, 0, Math.PI * 2);
+            ctx.fillStyle = p.body;
+            ctx.fill();
+
+            // antennae with club tips
+            ctx.strokeStyle = p.out;
+            ctx.fillStyle = p.spot;
+            ctx.lineWidth = s * 0.028;
+            ctx.lineCap = 'round';
+            for (let k = 0; k < 2; k++) {
+                const dir = k === 0 ? -1 : 1;
+                ctx.beginPath();
+                ctx.moveTo(s * 0.34, dir * s * 0.04);
+                ctx.quadraticCurveTo(s * 0.56, dir * s * 0.16, s * 0.64, dir * s * 0.34);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(s * 0.65, dir * s * 0.36, s * 0.042, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function renderButterflySprites() {
+            butterflySprites = butterflyColors.map(function (p) {
+                const strip = document.createElement('canvas');
+                strip.width = FRAME * FLAP_FRAMES;
+                strip.height = FRAME;
+                const c = strip.getContext('2d');
+                const s = SPRITE_UNIT;
+
+                for (let f = 0; f < FLAP_FRAMES; f++) {
+                    // one full wing-beat: 1 = wings flat open, 0.2 = nearly closed
+                    const phase = (f / FLAP_FRAMES) * Math.PI * 2;
+                    const open = 0.28 + 0.72 * ((Math.cos(phase) + 1) / 2);
+
+                    c.save();
+                    c.translate(f * FRAME + FRAME / 2, FRAME / 2);
+
+                    // soft glow, baked in behind the silhouette
+                    c.save();
+                    c.filter = 'blur(4px)';
+                    c.globalAlpha = 0.55;
+                    c.fillStyle = p.glow;
+                    for (let k = 0; k < 2; k++) {
+                        c.save();
+                        c.scale(1, (k === 0 ? -1 : 1) * open);
+                        traceForewing(c, s); c.fill();
+                        traceHindwing(c, s); c.fill();
+                        c.restore();
+                    }
+                    c.restore();
+                    c.filter = 'none';
+
+                    // wings — folded ones also shorten slightly, which reads as perspective
+                    for (let k = 0; k < 2; k++) {
+                        c.save();
+                        c.scale(0.94 + 0.06 * open, (k === 0 ? -1 : 1) * open);
+                        paintWingHalf(c, s, p, open);
+                        c.restore();
+                    }
+                    paintBody(c, s, p);
+                    c.restore();
+                }
+                return strip;
+            });
+
+            // tiny heart used for the sparkle trail
+            heartSprite = document.createElement('canvas');
+            heartSprite.width = heartSprite.height = 32;
+            const hc = heartSprite.getContext('2d');
+            hc.save();
+            hc.translate(16, 16);
+            hc.shadowColor = 'rgba(255,150,190,0.9)';
+            hc.shadowBlur = 6;
+            drawHeart(hc, 0, 0, 22, 0, 'rgba(255,190,215,0.95)');
+            hc.restore();
+        }
+
+        function createButterfly(delay) {
+            const cx = bCanvas.width / 2;
+            const cy = bCanvas.height / 2;
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 1.2 + Math.random() * 2.5;
+            const paletteIndex = Math.floor(Math.random() * butterflyColors.length);
+            const size = 12 + Math.random() * 20;
+
+            return {
+                x: cx + (Math.random() - 0.5) * 40,
+                y: cy + (Math.random() - 0.5) * 40,
+                heading: angle,
+                speed: speed,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                size: size,
+                wingPhase: Math.random() * Math.PI * 2,
+                // small butterflies beat faster — that alone reads as distance
+                wingSpeed: (0.42 - size * 0.008) + Math.random() * 0.05,
+                paletteIndex: paletteIndex,
+                palette: butterflyColors[paletteIndex],
+                alpha: 0,
+                fadeIn: 0.015 + Math.random() * 0.01,
+                wanderOffset: Math.random() * Math.PI * 2,
+                wanderFreq: 0.008 + Math.random() * 0.014,
+                wanderAmp: 0.018 + Math.random() * 0.026,
+                bobAmp: size * (0.06 + Math.random() * 0.06),
+                age: -delay, // negative = waiting to spawn
+                trail: [],
+                maxTrail: 6 + Math.floor(Math.random() * 4),
+                drift: (Math.random() - 0.5) * 0.008,
+                sparkle: Math.random() < 0.45,
+            };
+        }
+
+        function drawButterfly(ctx, b) {
+            if (b.age < 0 || b.alpha <= 0 || !butterflySprites) return;
+
+            const strip = butterflySprites[b.paletteIndex];
+            let f = Math.floor((b.wingPhase / (Math.PI * 2)) * FLAP_FRAMES) % FLAP_FRAMES;
+            if (f < 0) f += FLAP_FRAMES;
+
+            // they bob along their own up-axis with every beat
+            const bob = Math.sin(b.wingPhase) * b.bobAmp;
+            const flightAngle = Math.atan2(b.vy, b.vx);
+            const scale = (b.size * 2.6) / FRAME;
+
+            ctx.save();
+            ctx.globalAlpha = b.alpha;
+            ctx.translate(b.x - Math.sin(flightAngle) * bob, b.y + Math.cos(flightAngle) * bob);
+            ctx.rotate(flightAngle);
+            ctx.scale(scale, scale);
+            ctx.drawImage(strip, f * FRAME, 0, FRAME, FRAME, -FRAME / 2, -FRAME / 2, FRAME, FRAME);
+            ctx.restore();
+        }
+
+        function drawButterflyTrail(ctx, b) {
+            if (!b.sparkle || !heartSprite || b.trail.length < 3) return;
+            for (let i = 0; i < b.trail.length - 1; i += 2) {
+                const t = b.trail[i];
+                const progress = i / b.trail.length;
+                ctx.globalAlpha = progress * progress * b.alpha * 0.35;
+                const d = (2 + progress * 3.5) * (b.size / 18) * 2;
+                ctx.save();
+                ctx.translate(t.x, t.y);
+                ctx.rotate(t.r || 0);
+                ctx.drawImage(heartSprite, -d / 2, -d / 2, d, d);
+                ctx.restore();
+            }
+            ctx.globalAlpha = 1;
+        }
+
+        function startButterflyPhase() {
+            butterflyPhaseActive = true;
+            butterflyStartTime = performance.now();
+            butterflies = [];
+            floodTriggered = false;
+
+            if (!butterflySprites) renderButterflySprites();
+
+            // Show butterfly canvas
+            bCanvas.classList.add('active');
+
+            // Spawn butterflies in waves — few at first, then exponentially more
+            const waves = [
+                { count: 3,   delayBase: 0,    delaySpread: 200 },
+                { count: 6,   delayBase: 60,   delaySpread: 300 },
+                { count: 14,  delayBase: 140,  delaySpread: 350 },
+                { count: 28,  delayBase: 240,  delaySpread: 400 },
+                { count: 55,  delayBase: 350,  delaySpread: 450 },
+                { count: 90,  delayBase: 480,  delaySpread: 500 },
+                { count: 140, delayBase: 620,  delaySpread: 600 },
+            ];
+
+            waves.forEach(function (wave) {
+                for (let i = 0; i < wave.count; i++) {
+                    const delay = wave.delayBase + Math.random() * wave.delaySpread;
+                    butterflies.push(createButterfly(delay));
+                }
+            });
+
+            // small ones drawn first so the big ones sit in front — cheap depth
+            butterflies.sort(function (a, b) { return a.size - b.size; });
+        }
+
+        function updateButterflies() {
+            if (!butterflyPhaseActive) return;
+
+            bCtx.clearRect(0, 0, bCanvas.width, bCanvas.height);
+
+            const elapsed = (performance.now() - butterflyStartTime) / 1000;
+
+            // Trigger pink flood after ~10 seconds
+            if (elapsed > 10 && !floodTriggered) {
+                floodTriggered = true;
+                pinkFlood.classList.add('flooding');
+            }
+
+            for (let i = 0; i < butterflies.length; i++) {
+                const b = butterflies[i];
+                b.age++;
+
+                if (b.age < 0) continue; // Still waiting
+
+                // Fade in
+                if (b.alpha < 1) b.alpha = Math.min(1, b.alpha + b.fadeIn);
+
+                // Wing flap
+                b.wingPhase += b.wingSpeed;
+
+                // Wander by steering the heading rather than shaking the velocity —
+                // this is what makes the flight read as a butterfly instead of a bug on a spring.
+                const t = b.age;
+                b.heading += (Math.sin(t * b.wanderFreq + b.wanderOffset)
+                            + 0.5 * Math.sin(t * b.wanderFreq * 2.3 + b.wanderOffset * 1.7)) * b.wanderAmp
+                            + b.drift;
+
+                // surge on the downstroke, coast on the upstroke
+                const sp = b.speed * (0.85 + 0.35 * Math.max(0, Math.sin(b.wingPhase)));
+                b.vx = Math.cos(b.heading) * sp;
+                b.vy = Math.sin(b.heading) * sp;
+
+                // Move
+                b.x += b.vx;
+                b.y += b.vy;
+
+                // Store trail
+                if (b.sparkle && b.age % 2 === 0) {
+                    b.trail.push({ x: b.x, y: b.y, r: Math.atan2(b.vy, b.vx) });
+                    if (b.trail.length > b.maxTrail) b.trail.shift();
+                }
+
+                // Wrap around screen edges (so they feel infinite)
+                const margin = 60;
+                if (b.x < -margin) { b.x = bCanvas.width + margin * 0.5; b.trail.length = 0; }
+                if (b.x > bCanvas.width + margin) { b.x = -margin * 0.5; b.trail.length = 0; }
+                if (b.y < -margin) { b.y = bCanvas.height + margin * 0.5; b.trail.length = 0; }
+                if (b.y > bCanvas.height + margin) { b.y = -margin * 0.5; b.trail.length = 0; }
+
+                // Draw trail then butterfly
+                drawButterflyTrail(bCtx, b);
+                drawButterfly(bCtx, b);
+            }
+
+            // After flood is fully opaque (~13s), allow reset on click
+            if (floodTriggered && elapsed > 14) {
+                // Enable click to reset
+                document.body.addEventListener('click', resetEverything, { once: true });
+            }
+        }
+
+        function resetEverything() {
+            butterflyPhaseActive = false;
+            butterflies = [];
+            floodTriggered = false;
+            bCanvas.classList.remove('active');
+            pinkFlood.classList.remove('flooding');
+            pinkFlood.style.opacity = '0';
+            bCtx.clearRect(0, 0, bCanvas.width, bCanvas.height);
+
+            // Reset photos
+            revealedCount = 0;
+            titleEl.classList.remove('visible');
+            hintEl.classList.remove('hidden');
+            document.querySelectorAll('.photo-slot').forEach(s => {
+                s.classList.remove('revealed');
+            });
+            updateCounter();
+        }
+
+        // ========== MAIN ANIMATION LOOP ==========
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Ambient particles
+            pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.age++;
+
+                if (p.type === 'ambient') {
+                    if (p.alpha < p.maxAlpha) p.alpha += p.fadeInSpeed;
+
+                    p.y += p.speedY;
+                    p.x += p.speedX + Math.sin(p.age * p.wobbleSpeed + p.wobbleOffset) * 0.3;
+                    p.rotation += p.rotSpeed;
+
+                    if (p.y < -30) {
+                        Object.assign(p, createAmbientParticle());
+                    }
+
+                    const c = p.color.replace(/[\d.]+\)$/, (p.alpha * 0.6) + ')');
+                    drawHeart(pCtx, p.x, p.y, p.size, p.rotation, c);
+
+                } else if (p.type === 'burst') {
+                    p.x += p.speedX;
+                    p.y += p.speedY;
+                    p.speedX *= 0.96;
+                    p.speedY *= 0.96;
+                    p.speedY += 0.02;
+                    p.rotation += p.rotSpeed;
+                    p.alpha = Math.max(0, 1 - p.age / p.maxAge);
+
+                    if (p.alpha <= 0) {
+                        particles.splice(i, 1);
+                        continue;
+                    }
+
+                    const c = p.color.replace(/[\d.]+\)$/, (p.alpha * 0.8) + ')');
+                    drawHeart(pCtx, p.x, p.y, p.size, p.rotation, c);
+                }
+            }
+
+            const ambientCount = particles.filter(p => p.type === 'ambient').length;
+            if (ambientCount < AMBIENT_COUNT) {
+                particles.push(createAmbientParticle());
+            }
+
+            // Butterfly phase
+            updateButterflies();
+        }
+
+        // ========== REVEAL SOUND (subtle) ==========
+        function playRevealSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800 + revealedCount * 40, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200 + revealedCount * 30, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+
+                osc.start(audioCtx.currentTime);
+                osc.stop(audioCtx.currentTime + 0.4);
+            } catch (e) {
+                // Audio not supported
+            }
+        }
+
+        // ========== INIT ==========
+        layoutPhotos();
+        updateCounter();
+        animate();
+    </script>
+</body>
+
+</html>
