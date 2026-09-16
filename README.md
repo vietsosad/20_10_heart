@@ -50,7 +50,7 @@ Sửa khối `MUSIC` trong `heart.html` (khối `NHẠC NỀN`):
 const MUSIC = {
     youtubeId: 'NwFVSclD_uc',  // phần sau ?v= trong link YouTube
     file: '',                  // hoặc 'nhac.mp3' — để cạnh heart.html
-    volume: 0.35,              // 0 – 1
+    volume: 0.6,               // 0 – 1
     startAt: 0,                // giây, chỉ áp dụng cho YouTube
     fadeIn: 2500,              // ms, nhạc lớn dần lên cho đỡ giật mình
 };

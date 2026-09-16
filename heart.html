@@ -318,6 +318,21 @@
             to { transform: rotate(360deg); }
         }
 
+        /* Đang tắt tiếng: gạch chéo qua đĩa cho khỏi nhầm với "chưa bật" */
+        #record.muted::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 80px;
+            height: 2px;
+            margin: -1px 0 0 -40px;
+            border-radius: 2px;
+            background: rgba(255, 214, 228, 0.8);
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.9);
+            transform: rotate(-45deg);
+        }
+
         /* Chưa phát hoặc đang tắt tiếng: đĩa đứng yên và xỉn lại */
         #record.paused {
             opacity: 0.42;
@@ -568,7 +583,7 @@
         const MUSIC = {
             youtubeId: 'NwFVSclD_uc',  // The Walters — I Love You So
             file: '',           // ví dụ 'nhac.mp3'
-            volume: 0.35,       // 0 – 1
+            volume: 0.6,        // 0 – 1
             startAt: 0,         // giây, chỉ áp dụng cho YouTube
             fadeIn: 2500,       // ms, thời gian nhạc lớn dần lên
         };
@@ -645,6 +660,19 @@
                 document.head.appendChild(tag);
                 showRecord();
 
+                // Tiện ích chặn quảng cáo hay chặn luôn iframe_api. Khi đó không có
+                // onError nào để bắt — script đơn giản là không bao giờ nạp. Chờ một
+                // lúc, nếu vẫn chưa thấy YT thì coi như hỏng và xử lý như lỗi video.
+                setTimeout(function () {
+                    if (typeof YT !== 'undefined' && YT.Player) return;
+                    if (MUSIC.file) {
+                        setupFileMusic();
+                        if (musicStarted) playMusic();
+                    } else {
+                        recordEl.classList.remove('on'); // đĩa chết thì đừng bày ra
+                    }
+                }, 10000);
+
             } else if (MUSIC.file) {
                 setupFileMusic();
             }
@@ -663,15 +691,16 @@
         // Tăng dần âm lượng để nhạc không ập vào mặt người xem
         function fadeMusicIn() {
             clearInterval(fadeTimer);
-            const step = 40;
-            let t = 0;
+            // Bám đồng hồ thật thay vì đếm số nhịp: nếu trình duyệt giãn nhịp
+            // setInterval thì cách đếm nhịp sẽ kéo dài fade ra rất lâu, nghe như
+            // không có tiếng. Theo thời gian thật thì fade luôn đúng hạn.
+            const t0 = Date.now();
             fadeTimer = setInterval(function () {
-                t += step;
-                const v = Math.min(1, t / MUSIC.fadeIn) * MUSIC.volume;
-                if (ytPlayer && ytReady) ytPlayer.setVolume(v * 100);
+                const v = Math.min(1, (Date.now() - t0) / MUSIC.fadeIn) * MUSIC.volume;
+                if (ytPlayer && ytReady) ytPlayer.setVolume(Math.round(v * 100));
                 else if (musicEl) musicEl.volume = v;
-                if (t >= MUSIC.fadeIn) clearInterval(fadeTimer);
-            }, step);
+                if (v >= MUSIC.volume) clearInterval(fadeTimer);
+            }, 40);
         }
 
         function playMusic() {
@@ -689,9 +718,22 @@
         }
 
         function startMusicOnce() {
-            if (musicStarted) return;
-            musicStarted = true;
-            playMusic();
+            if (!musicStarted) {
+                musicStarted = true;
+                playMusic();
+                return;
+            }
+            // Đã bấm phát rồi nhưng tiếng chưa chạy: thử lại ngay trong cú click này.
+            // Cần thế vì trình duyệt chỉ cho phát từ trong một thao tác thật của
+            // người dùng — nếu API YouTube nạp xong sau cú click đầu thì lần gọi
+            // từ onReady nằm ngoài thao tác đó và bị chặn.
+            if (musicMuted) return;
+            if (ytPlayer && ytReady) {
+                const st = ytPlayer.getPlayerState();
+                if (st !== YT.PlayerState.PLAYING && st !== YT.PlayerState.BUFFERING) playMusic();
+            } else if (musicEl && musicEl.paused) {
+                playMusic();
+            }
         }
 
         function toggleMusic() {
@@ -702,6 +744,7 @@
             } else if (musicEl) {
                 musicEl.muted = musicMuted;
             }
+            recordEl.classList.toggle('muted', musicMuted);
             spinRecord(!musicMuted);
         }
 
