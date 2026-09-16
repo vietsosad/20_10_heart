@@ -13,6 +13,14 @@
 *.mp4
 *.mov
 
+# Nhạc nền — để ngoài repo (xem phần "Nhạc nền" trong README)
+*.mp3
+*.m4a
+*.aac
+*.wav
+*.ogg
+*.flac
+
 # Rác hệ thống
 Thumbs.db
 desktop.ini

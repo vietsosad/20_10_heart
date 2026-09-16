@@ -40,6 +40,47 @@ Số lượng ảnh là tuỳ ý — trái tim tự tính lại vị trí cho đ
 
 ---
 
+## Nhạc nền
+
+Trang hỗ trợ **cả hai cách**: nhúng YouTube, hoặc dùng file nhạc để cạnh `heart.html`. Mặc định là im lặng — chỉ khi bạn điền cấu hình thì nút nhạc mới hiện ra ở góc dưới bên trái.
+
+Sửa khối `MUSIC` trong `heart.html` (khối `NHẠC NỀN`):
+
+```js
+const MUSIC = {
+    youtubeId: 'jfKfPfyJRdk',  // phần sau ?v= trong link YouTube
+    file: '',                  // hoặc 'nhac.mp3' — để cạnh heart.html
+    volume: 0.35,              // 0 – 1
+    startAt: 0,                // giây, chỉ áp dụng cho YouTube
+    fadeIn: 2500,              // ms, nhạc lớn dần lên cho đỡ giật mình
+    hidePlayer: false,         // true = thu khung YouTube về 1px
+};
+```
+
+Nhạc **bắt đầu ở click đầu tiên**, cùng lúc với tấm ảnh đầu tiên. Đây không phải lựa chọn thẩm mỹ mà là bắt buộc: trình duyệt không cho phát tiếng trước khi người dùng thao tác. Trang này click-to-play sẵn nên vừa vặn. Nút ♪ góc dưới trái để tắt/bật tiếng giữa chừng.
+
+### Chọn cách nào?
+
+|  | YouTube | File nhạc |
+|---|---|---|
+| Chạy bằng `file://` (mở thẳng file) | ❌ player không hiện | ✅ chạy |
+| Chạy offline | ❌ | ✅ |
+| Đẩy lên repo công khai | ✅ nhạc nằm ở server YouTube | ⚠️ đừng commit nhạc có bản quyền |
+| Có quảng cáo chèn trước | có thể | không |
+| Rủi ro tắt tiếng | video bị gỡ / chặn nhúng / khoá vùng | không |
+
+**Nếu dùng YouTube, cần biết ba điều:**
+
+1. **Phải chạy qua http(s)**, không mở thẳng bằng `file://` — đã thử: qua `file://` iframe được tạo nhưng player không hiện. Dùng `python -m http.server` hoặc GitHub Pages.
+2. **Video phải cho phép nhúng.** Nhiều video (đặc biệt bản ghi livestream, MV hãng đĩa) trả lỗi *"Video unavailable"* khi nhúng. Khi đó `onError` sẽ tự chuyển sang `MUSIC.file` nếu bạn có điền, còn không thì nút nhạc tự ẩn đi.
+3. **`hidePlayer: true` là trái điều khoản của YouTube** — họ yêu cầu player phải nhìn thấy được. Mặc định khung player hiện nhỏ, mờ ở góc dưới trái và rõ lên khi rê chuột vào. Bật cờ đó hay không là quyết định của bạn.
+
+**Nếu dùng file nhạc:** `.gitignore` đã chặn sẵn `*.mp3 *.m4a *.wav *.ogg *.flac`. Nhạc có bản quyền mà commit lên repo công khai là chuyện vi phạm bản quyền, nên file nhạc chỉ nằm trong máy bạn — ai clone repo về sẽ phải tự chuẩn bị nhạc, giống như với ảnh.
+
+Điền cả hai nguồn cũng được: YouTube chạy trước, hỏng thì tự rơi về file.
+
+---
+
 ## Luồng trải nghiệm
 
 | Bước | Diễn ra |
@@ -62,6 +103,7 @@ Tất cả nằm trong `heart.html`, chia theo các khối comment:
 | `PHOTO LIST` | Danh sách ảnh |
 | `HEART SHAPE POSITIONS` | Phương trình tim `x = 16sin³t`, `y = -(13cos t − 5cos 2t − 2cos 3t − cos 4t)`, lấy mẫu đều theo số ảnh rồi map vào khung chứa |
 | `REVEAL LOGIC` | Đếm click, mở ảnh, bộ đếm, ẩn/hiện tiêu đề |
+| `NHẠC NỀN` | Cấu hình `MUSIC`, nạp YouTube IFrame API hoặc `<audio>`, fade-in, nút tắt/bật tiếng, dự phòng khi video lỗi |
 | `PARTICLE SYSTEM` | Tim trôi nền (25 hạt, tự tái sinh) + chùm tim bắn ra mỗi lần mở ảnh |
 | `BUTTERFLY HEART FINALE` | Toàn bộ màn cuối — xem phần dưới |
 | `MAIN ANIMATION LOOP` | Một `requestAnimationFrame` duy nhất chạy cả hai canvas |
@@ -96,7 +138,8 @@ Phần bay:
 | Độ nét sprite | `FRAME` (mặc định 128px mỗi khung) |
 | Thời điểm phủ hồng / cho reset | mốc `elapsed > 10` và `elapsed > 14` trong `updateButterflies()` |
 | Số tim trôi nền | `AMBIENT_COUNT` |
-| Tắt tiếng | bỏ lời gọi `playRevealSound()` trong `revealNext()` |
+| Tắt tiếng nốt nhạc mỗi lần mở ảnh | bỏ lời gọi `playRevealSound()` trong `revealNext()` |
+| Nhạc nền | khối `MUSIC` — xem phần [Nhạc nền](#nhạc-nền) |
 
 ---
 

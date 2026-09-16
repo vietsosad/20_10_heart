@@ -245,6 +245,90 @@
             letter-spacing: 2px;
         }
 
+        /* Nút bật / tắt nhạc — chỉ hiện khi đã cấu hình nguồn nhạc */
+        #music-toggle {
+            position: fixed;
+            left: 22px;
+            bottom: 20px;
+            z-index: 300;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 1px solid rgba(232, 170, 181, 0.3);
+            background: rgba(30, 12, 20, 0.55);
+            backdrop-filter: blur(6px);
+            color: #f0c8d4;
+            font-size: 16px;
+            line-height: 1;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.55;
+            transition: opacity 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        #music-toggle.on {
+            display: flex;
+        }
+
+        #music-toggle:hover {
+            opacity: 1;
+            transform: scale(1.08);
+            border-color: rgba(255, 182, 193, 0.6);
+        }
+
+        #music-toggle.muted {
+            opacity: 0.28;
+        }
+
+        /* gạch chéo khi tắt tiếng */
+        #music-toggle.muted::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 1px;
+            background: #f0c8d4;
+            transform: rotate(-45deg);
+        }
+
+        /* Khung player YouTube */
+        #yt-box {
+            position: fixed;
+            left: 18px;
+            bottom: 68px;
+            z-index: 300;
+            width: 168px;
+            height: 95px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(232, 170, 181, 0.18);
+            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.55);
+            opacity: 0;
+            transform: translateY(8px);
+            pointer-events: none;
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        #yt-box.visible {
+            opacity: 0.45;
+            transform: none;
+            pointer-events: auto;
+        }
+
+        #yt-box.visible:hover {
+            opacity: 1;
+        }
+
+        /* MUSIC.hidePlayer = true — xem ghi chú trong README trước khi dùng */
+        #yt-box.collapsed {
+            width: 1px;
+            height: 1px;
+            border: 0;
+            box-shadow: none;
+            opacity: 0.01;
+        }
+
         /* Vignette overlay */
         #vignette {
             position: fixed;
@@ -322,6 +406,9 @@
     </div>
 
     <div id="photo-counter"></div>
+
+    <div id="yt-box"><div id="yt-player"></div></div>
+    <button id="music-toggle" type="button" aria-label="Bật / tắt nhạc">♪</button>
 
     <div id="title-text">
         <h1>Bùi Ngọc Khánh Quỳnh</h1>
@@ -460,8 +547,149 @@
             playRevealSound();
         }
 
+        // ========== NHẠC NỀN ==========
+        // Chọn MỘT trong hai nguồn: id video YouTube, hoặc file nhạc để cạnh heart.html.
+        // Để trống cả hai thì trang chạy im lặng và nút nhạc không hiện.
+        const MUSIC = {
+            youtubeId: '',      // phần sau ?v= trong link YouTube, ví dụ 'jfKfPfyJRdk'
+            file: '',           // ví dụ 'nhac.mp3'
+            volume: 0.35,       // 0 – 1
+            startAt: 0,         // giây, chỉ áp dụng cho YouTube
+            fadeIn: 2500,       // ms, thời gian nhạc lớn dần lên
+            hidePlayer: false,  // true = thu khung YouTube về 1px (đọc README trước khi bật)
+        };
+
+        const musicBtn = document.getElementById('music-toggle');
+        const ytBox = document.getElementById('yt-box');
+        let musicStarted = false;
+        let musicMuted = false;
+        let musicEl = null;      // <audio> khi dùng file
+        let ytPlayer = null;     // player khi dùng YouTube
+        let ytReady = false;
+        let fadeTimer = null;
+
+        function setupMusic() {
+            if (MUSIC.youtubeId) {
+                if (MUSIC.hidePlayer) ytBox.classList.add('collapsed');
+
+                // YouTube gọi ngược lại hàm này khi IFrame API nạp xong
+                window.onYouTubeIframeAPIReady = function () {
+                    ytPlayer = new YT.Player('yt-player', {
+                        videoId: MUSIC.youtubeId,
+                        width: 168,
+                        height: 95,
+                        playerVars: {
+                            autoplay: 0,
+                            controls: 0,
+                            disablekb: 1,
+                            modestbranding: 1,
+                            rel: 0,
+                            playsinline: 1,
+                            start: MUSIC.startAt,
+                            loop: 1,
+                            playlist: MUSIC.youtubeId, // loop chỉ chạy khi có playlist
+                        },
+                        events: {
+                            onReady: function () {
+                                ytReady = true;
+                                ytPlayer.setVolume(0);
+                                if (musicStarted) playMusic(); // người dùng click trước khi API kịp nạp
+                            },
+                            // phòng khi loop của YouTube không ăn
+                            onStateChange: function (e) {
+                                if (e.data === YT.PlayerState.ENDED) {
+                                    ytPlayer.seekTo(MUSIC.startAt);
+                                    ytPlayer.playVideo();
+                                }
+                            },
+                            // video bị tắt nhúng, bị gỡ, hoặc chặn theo vùng
+                            onError: function () {
+                                ytPlayer = null;
+                                ytReady = false;
+                                ytBox.classList.remove('visible');
+                                if (MUSIC.file) {       // còn file nhạc thì quay về dùng file
+                                    setupFileMusic();
+                                    if (musicStarted) playMusic();
+                                } else {
+                                    musicBtn.classList.remove('on');
+                                }
+                            },
+                        },
+                    });
+                };
+
+                const tag = document.createElement('script');
+                tag.src = 'https://www.youtube.com/iframe_api';
+                document.head.appendChild(tag);
+                musicBtn.classList.add('on');
+
+            } else if (MUSIC.file) {
+                setupFileMusic();
+            }
+        }
+
+        function setupFileMusic() {
+            musicEl = new Audio(MUSIC.file);
+            musicEl.loop = true;
+            musicEl.volume = 0;
+            musicEl.preload = 'auto';
+            musicBtn.classList.add('on');
+        }
+
+        // Tăng dần âm lượng để nhạc không ập vào mặt người xem
+        function fadeMusicIn() {
+            clearInterval(fadeTimer);
+            const step = 40;
+            let t = 0;
+            fadeTimer = setInterval(function () {
+                t += step;
+                const v = Math.min(1, t / MUSIC.fadeIn) * MUSIC.volume;
+                if (ytPlayer && ytReady) ytPlayer.setVolume(v * 100);
+                else if (musicEl) musicEl.volume = v;
+                if (t >= MUSIC.fadeIn) clearInterval(fadeTimer);
+            }, step);
+        }
+
+        function playMusic() {
+            if (ytPlayer && ytReady) {
+                ytPlayer.unMute();
+                ytPlayer.playVideo();
+                if (!MUSIC.hidePlayer) ytBox.classList.add('visible');
+                fadeMusicIn();
+            } else if (musicEl) {
+                // trình duyệt chỉ cho phát khi có thao tác của người dùng — nên hàm này
+                // luôn được gọi từ trong một sự kiện click
+                const p = musicEl.play();
+                if (p && p.catch) p.catch(function () { /* bị chặn, bấm nút nhạc để thử lại */ });
+                fadeMusicIn();
+            }
+        }
+
+        function startMusicOnce() {
+            if (musicStarted) return;
+            musicStarted = true;
+            playMusic();
+        }
+
+        function toggleMusic() {
+            if (!musicStarted) { startMusicOnce(); return; }
+            musicMuted = !musicMuted;
+            musicBtn.classList.toggle('muted', musicMuted);
+            if (ytPlayer && ytReady) {
+                if (musicMuted) ytPlayer.mute(); else ytPlayer.unMute();
+            } else if (musicEl) {
+                musicEl.muted = musicMuted;
+            }
+        }
+
+        musicBtn.addEventListener('click', function (e) {
+            e.stopPropagation(); // đừng để bấm nút nhạc cũng mở luôn một tấm ảnh
+            toggleMusic();
+        });
+
         // Click handler
         document.body.addEventListener('click', function(e) {
+            startMusicOnce(); // click đầu tiên vừa mở ảnh vừa mở nhạc
             if (butterflyPhaseActive) return; // During butterfly phase, ignore clicks
             revealNext();
         });
@@ -1097,6 +1325,7 @@
         // ========== INIT ==========
         layoutPhotos();
         updateCounter();
+        setupMusic();
         animate();
     </script>
 </body>
