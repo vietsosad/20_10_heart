@@ -74,6 +74,7 @@ Nhạc **bắt đầu ở click đầu tiên**, cùng lúc với tấm ảnh đ�
 **Nếu dùng YouTube, cần biết ba điều:**
 
 1. **Phải chạy qua http(s)**, không mở thẳng bằng `file://` — đã thử: qua `file://` iframe được tạo nhưng player không hiện. Dùng `python -m http.server` hoặc GitHub Pages.
+   Và phải vào bằng **`http://localhost:8000`**, đừng vào bằng `http://127.0.0.1:8000`: cùng một server, cùng một trang, nhưng YouTube trả lỗi 150 (chặn nhúng) cho origin `127.0.0.1` trong khi `localhost` thì chạy bình thường. Đã thử cả hai để chắc.
 2. **Video phải cho phép nhúng.** Nhiều video (đặc biệt bản ghi livestream, MV hãng đĩa) trả lỗi *"Video unavailable"* khi nhúng. Khi đó `onError` sẽ tự chuyển sang `MUSIC.file` nếu bạn có điền, còn không thì nút nhạc tự ẩn đi.
 3. **`hidePlayer: true` là trái điều khoản của YouTube** — họ yêu cầu player phải nhìn thấy được. Mặc định khung player hiện nhỏ, mờ ở góc dưới trái và rõ lên khi rê chuột vào. Bật cờ đó hay không là quyết định của bạn.
 
