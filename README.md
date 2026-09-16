@@ -42,13 +42,13 @@ Số lượng ảnh là tuỳ ý — trái tim tự tính lại vị trí cho đ
 
 ## Nhạc nền
 
-Trang hỗ trợ **cả hai cách**: nhúng YouTube, hoặc dùng file nhạc để cạnh `heart.html`. Mặc định là im lặng — chỉ khi bạn điền cấu hình thì nút nhạc mới hiện ra ở góc dưới bên trái.
+Trang hỗ trợ **cả hai cách**: nhúng YouTube, hoặc dùng file nhạc để cạnh `heart.html`. Bản này đang nhúng sẵn *The Walters — I Love You So* từ YouTube. Để trống cả hai trường thì trang chạy im lặng và nút nhạc không hiện.
 
 Sửa khối `MUSIC` trong `heart.html` (khối `NHẠC NỀN`):
 
 ```js
 const MUSIC = {
-    youtubeId: 'jfKfPfyJRdk',  // phần sau ?v= trong link YouTube
+    youtubeId: 'NwFVSclD_uc',  // phần sau ?v= trong link YouTube
     file: '',                  // hoặc 'nhac.mp3' — để cạnh heart.html
     volume: 0.35,              // 0 – 1
     startAt: 0,                // giây, chỉ áp dụng cho YouTube
@@ -56,6 +56,8 @@ const MUSIC = {
     hidePlayer: false,         // true = thu khung YouTube về 1px
 };
 ```
+
+Chỉ cần phần id sau `?v=` trong link. Nếu link của bạn có thêm `&list=RD...` thì bỏ qua phần đó — đó là danh sách "radio" YouTube tự sinh cho từng người, không nhúng ổn định; ở đây một bài được cho lặp lại liên tục.
 
 Nhạc **bắt đầu ở click đầu tiên**, cùng lúc với tấm ảnh đầu tiên. Đây không phải lựa chọn thẩm mỹ mà là bắt buộc: trình duyệt không cho phát tiếng trước khi người dùng thao tác. Trang này click-to-play sẵn nên vừa vặn. Nút ♪ góc dưới trái để tắt/bật tiếng giữa chừng.
 
